@@ -18,7 +18,7 @@ impl Country {
         }
     }
 
-    #[cfg(feature = "web_sys")]
+    #[cfg(feature = "web-sys")]
     pub fn get_current() -> Self {
         use web_sys::window;
         for lang in window().unwrap().navigator().languages().to_vec() {
@@ -54,7 +54,7 @@ impl TryFrom<String> for Country {
     }
 }
 
-#[cfg(feature = "country_timeago")]
+#[cfg(feature = "timeago")]
 impl timeago::Language for Country {
     fn too_low(&self) -> &'static str {
         match self {

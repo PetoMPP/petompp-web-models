@@ -2,7 +2,17 @@ use crate::models::password_requirements::PasswordRequirements;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[cfg(feature = "api-errors")]
+pub type ApiError<'a> = rocket::response::status::Custom<rocket::serde::json::Json<crate::models::api_response::ApiResponse<'a, Error>>>;
+
+#[cfg(feature = "api-errors")]
+impl From<Error> for ApiError<'_> {
+    fn from(value: Error) -> Self {
+        rocket::response::status::Custom(value.status(), rocket::serde::json::Json(crate::models::api_response::ApiResponse::err(value)))
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum Error {
     AuthError(AuthError),
     DatabaseError(String),
@@ -14,6 +24,27 @@ pub enum Error {
     ValidationError(ValidationError),
     Status(u16, String),
 }
+
+#[cfg(feature = "api-errors")]
+impl Error {
+    fn status(&self) -> rocket::http::Status {
+        match self {
+            Error::AuthError(e) => match e {
+                AuthError::JwtError(_) => rocket::http::Status::InternalServerError,
+                _ => rocket::http::Status::BadRequest,
+            },
+            Error::DatabaseError(_) => rocket::http::Status::InternalServerError,
+            Error::DatabaseConnectionError(_) => rocket::http::Status::InternalServerError,
+            Error::UserNameTaken(_) => rocket::http::Status::BadRequest,
+            Error::UserNotFound(_) => rocket::http::Status::NotFound,
+            Error::InvalidCredentials => rocket::http::Status::Unauthorized,
+            Error::UserNotConfirmed(_) => rocket::http::Status::PaymentRequired,
+            Error::ValidationError(_) => rocket::http::Status::BadRequest,
+            Error::Status(status, _) => rocket::http::Status::from_code(*status).unwrap(),
+        }
+    }
+}
+
 
 impl Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -57,7 +88,7 @@ impl From<azure_core::error::Error> for Error {
 
 impl std::error::Error for Error {}
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum AuthError {
     MissingClaim(String),
     InvalidFormat(String),
@@ -80,7 +111,7 @@ impl Display for AuthError {
 
 impl std::error::Error for AuthError {}
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum ValidationError {
     Username(UsernameValidationError),
     Password(PasswordRequirements),
@@ -88,18 +119,18 @@ pub enum ValidationError {
     ResourceData(ResourceDataValidationError),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum UsernameValidationError {
     InvalidLength(i32, i32),
     InvalidCharacters(Vec<char>),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum QueryValidationError {
     InvalidColumn(String),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum ResourceDataValidationError {
     KeyMismatch(String, String),
     KeyMissing,

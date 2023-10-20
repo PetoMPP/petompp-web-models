@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use crate::error::{Error, ValidationError};
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub struct PasswordRequirements {
     pub min_length: i32,
     pub passes_required: i32,

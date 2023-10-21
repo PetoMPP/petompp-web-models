@@ -3,6 +3,7 @@ use crate::models::country::Country;
 use crate::services::filename::FilenameService;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct BlogMetaData {
@@ -18,7 +19,9 @@ pub struct BlogMetaData {
 impl BlogMetaData {
     pub fn filename(&self, filename_service: &FilenameService) -> String {
         self.created.format("%Y-%m-%d").to_string()
-            + filename_service.sanitize(self.title.as_str()).as_str()
+            + filename_service
+            .sanitize(self.title.split_whitespace().collect::<String>().as_str())
+            .as_str()
             + "_"
             + self.lang.key()
             + ".md"
@@ -27,15 +30,19 @@ impl BlogMetaData {
 
 #[cfg(feature = "azure_storage_blobs")]
 use crate::{error::Error, models::tag::Tag};
+
 #[cfg(feature = "azure_storage_blobs")]
 impl TryFrom<azure_storage_blobs::blob::Blob> for BlogMetaData {
     type Error = Error;
 
     fn try_from(value: azure_storage_blobs::blob::Blob) -> Result<Self, Self::Error> {
-        let meta = &value
+        let meta = value
             .metadata
             .ok_or(Error::DatabaseError("File has no metadata!".to_string()))?
-            .clone();
+            .clone()
+            .into_iter()
+            .map(|(k, v)| (k.to_uppercase(), v)) // Azure storage blobs metadata is case insensitive
+            .collect::<HashMap<_, _>>();
         let title = meta
             .get("BLOG_TITLE")
             .ok_or(Error::DatabaseError("File has no title!".to_string()))?

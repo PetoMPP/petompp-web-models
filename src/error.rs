@@ -3,12 +3,17 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
 #[cfg(feature = "api-errors")]
-pub type ApiError<'a> = rocket::response::status::Custom<rocket::serde::json::Json<crate::models::api_response::ApiResponse<'a, Error>>>;
+pub type ApiError<'a> = rocket::response::status::Custom<
+    rocket::serde::json::Json<crate::models::api_response::ApiResponse<'a, Error>>,
+>;
 
 #[cfg(feature = "api-errors")]
 impl From<Error> for ApiError<'_> {
     fn from(value: Error) -> Self {
-        rocket::response::status::Custom(value.status(), rocket::serde::json::Json(crate::models::api_response::ApiResponse::err(value)))
+        rocket::response::status::Custom(
+            value.status(),
+            rocket::serde::json::Json(crate::models::api_response::ApiResponse::err(value)),
+        )
     }
 }
 
@@ -44,7 +49,6 @@ impl Error {
         }
     }
 }
-
 
 impl Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -115,6 +119,7 @@ impl std::error::Error for AuthError {}
 pub enum ValidationError {
     Username(UsernameValidationError),
     Password(PasswordRequirements),
+    Country,
     Query(QueryValidationError),
     ResourceData(ResourceDataValidationError),
 }

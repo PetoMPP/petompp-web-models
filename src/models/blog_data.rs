@@ -1,12 +1,11 @@
 use super::tag::Tags;
 use crate::models::country::Country;
-use crate::services::filename::FilenameService;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct BlogMetaData {
+    pub id: String,
     pub title: String,
     pub tags: Tags,
     pub created: DateTime<Utc>,
@@ -17,25 +16,32 @@ pub struct BlogMetaData {
 }
 
 impl BlogMetaData {
-    pub fn filename(&self, filename_service: &FilenameService) -> String {
-        self.created.format("%Y-%m-%d").to_string()
-            + filename_service
-            .sanitize(self.title.split_whitespace().collect::<String>().as_str())
-            .as_str()
-            + "_"
-            + self.lang.key()
-            + ".md"
+    pub fn filename(&self) -> String {
+        format!("blog/{}/{}.md", self.id, self.lang.key())
     }
 }
 
 #[cfg(feature = "azure_storage_blobs")]
 use crate::{error::Error, models::tag::Tag};
+#[cfg(feature = "azure_storage_blobs")]
+use std::collections::HashMap;
 
 #[cfg(feature = "azure_storage_blobs")]
 impl TryFrom<azure_storage_blobs::blob::Blob> for BlogMetaData {
     type Error = Error;
 
     fn try_from(value: azure_storage_blobs::blob::Blob) -> Result<Self, Self::Error> {
+        let (id, lang) = value
+            .name
+            .split_once('/')
+            .ok_or(Error::DatabaseError("File has no id!".to_string()))?;
+        let id = id.to_string();
+        let lang = Country::try_from(
+            lang.split_once('.')
+                .ok_or(Error::DatabaseError("File has no extension!".to_string()))?
+                .0,
+        )
+        .map_err(|_| Error::DatabaseError("File has no valid lang!".to_string()))?;
         let meta = value
             .metadata
             .ok_or(Error::DatabaseError("File has no metadata!".to_string()))?
@@ -69,25 +75,8 @@ impl TryFrom<azure_storage_blobs::blob::Blob> for BlogMetaData {
             DateTime::from_timestamp(value.properties.creation_time.unix_timestamp(), 0).unwrap();
         let updated =
             DateTime::from_timestamp(value.properties.last_modified.unix_timestamp(), 0).unwrap();
-        let lang_start = value
-            .name
-            .chars()
-            .enumerate()
-            .filter(|(_, c)| c == &'_')
-            .map(|(i, _)| i)
-            .last()
-            .ok_or(Error::DatabaseError("File has no language!".to_string()))?;
-        let lang_end = value
-            .name
-            .chars()
-            .enumerate()
-            .skip(lang_start)
-            .find(|(_, c)| c == &'.')
-            .map(|(i, _)| i)
-            .ok_or(Error::DatabaseError("File has no language!".to_string()))?;
-        let lang = Country::try_from(&value.name[lang_start + 1..lang_end])
-            .map_err(|e| Error::DatabaseError(e.to_string()))?;
         Ok(BlogMetaData {
+            id,
             title,
             tags,
             created,

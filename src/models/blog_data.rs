@@ -15,12 +15,6 @@ pub struct BlogMetaData {
     pub lang: Country,
 }
 
-impl BlogMetaData {
-    pub fn filename(&self) -> String {
-        format!("blog/{}/{}.md", self.id, self.lang.key())
-    }
-}
-
 #[cfg(feature = "azure_storage_blobs")]
 use crate::{error::Error, models::tag::Tag};
 #[cfg(feature = "azure_storage_blobs")]

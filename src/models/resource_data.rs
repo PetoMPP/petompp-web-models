@@ -1,3 +1,4 @@
+use super::country::Country;
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Serialize, Deserialize, Clone)]
@@ -8,23 +9,18 @@ pub struct ResourceData {
 }
 
 impl ResourceData {
-    pub fn new_from_lang(
-        key: impl Into<String>,
-        lang: &str,
-        value: impl Into<String>,
-    ) -> Option<Self> {
+    pub fn new_from_lang(key: impl Into<String>, lang: &Country, value: impl Into<String>) -> Self {
         match lang {
-            "en" => Some(Self {
+            Country::UnitedKingdom => Self {
                 key: key.into(),
                 en: Some(value.into()),
                 pl: None,
-            }),
-            "pl" => Some(Self {
+            },
+            Country::Poland => Self {
                 key: key.into(),
                 en: None,
                 pl: Some(value.into()),
-            }),
-            _ => None,
+            },
         }
     }
 }

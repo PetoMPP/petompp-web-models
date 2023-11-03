@@ -3,7 +3,7 @@ use crate::models::country::Country;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct BlogMetaData {
     pub id: String,
     pub title: String,

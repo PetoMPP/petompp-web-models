@@ -20,15 +20,21 @@ impl IntoIterator for Tags {
     }
 }
 
-impl From<Vec<Tag>> for Tags {
-    fn from(tags: Vec<Tag>) -> Self {
+impl FromIterator<Tag> for Tags {
+    fn from_iter<T: IntoIterator<Item = Tag>>(iter: T) -> Self {
         Self {
-            tags: tags
+            tags: iter
                 .into_iter()
                 .map(|tag| tag.tag)
                 .collect::<Vec<_>>()
                 .join(","),
         }
+    }
+}
+
+impl From<Vec<Tag>> for Tags {
+    fn from(tags: Vec<Tag>) -> Self {
+        Self::from_iter(tags)
     }
 }
 

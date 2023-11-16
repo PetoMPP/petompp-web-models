@@ -10,7 +10,7 @@ pub struct BlogMetaData {
     pub tags: Tags,
     pub created: DateTime<Utc>,
     pub updated: DateTime<Utc>,
-    pub image: Option<String>,
+    pub image: String,
     pub summary: String,
     pub lang: Country,
 }
@@ -51,7 +51,7 @@ impl TryFrom<azure_storage_blobs::blob::Blob> for BlogMetaData {
             .get("BLOG_SUMMARY")
             .ok_or(Error::DatabaseError("File has no summary!".to_string()))?
             .clone();
-        let image = meta.get("BLOG_IMAGE").cloned();
+        let image = meta.get("BLOG_IMAGE").cloned().unwrap_or_default();
         let tags = value
             .tags
             .unwrap_or_default()

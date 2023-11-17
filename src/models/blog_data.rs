@@ -3,6 +3,12 @@ use crate::models::country::Country;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum BlogData {
+    Meta(BlogMetaData),
+    All(BlogMetaData, String),
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct BlogMetaData {
     pub id: String,

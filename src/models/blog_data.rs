@@ -87,3 +87,17 @@ impl TryFrom<azure_storage_blobs::blob::Blob> for BlogMetaData {
         })
     }
 }
+
+#[cfg(feature = "azure_core")]
+impl Into<azure_core::request_options::Metadata> for BlogMetaData {
+    fn into(self) -> azure_core::request_options::Metadata {
+        let mut meta = azure_core::request_options::Metadata::new();
+        meta.insert("BLOG_TITLE", self.title);
+        meta.insert("BLOG_SUMMARY", self.summary);
+        meta.insert("BLOG_IMAGE", self.image);
+        for (i, tag) in self.tags.into_iter().enumerate() {
+            meta.insert(format!("BLOG_TAG_{}", i), tag.tag);
+        }
+        meta
+    }
+}

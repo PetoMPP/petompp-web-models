@@ -95,9 +95,6 @@ impl Into<azure_core::request_options::Metadata> for BlogMetaData {
         meta.insert("BLOG_TITLE", self.title);
         meta.insert("BLOG_SUMMARY", self.summary);
         meta.insert("BLOG_IMAGE", self.image);
-        for (i, tag) in self.tags.into_iter().enumerate() {
-            meta.insert(format!("BLOG_TAG_{}", i), tag.tag);
-        }
         meta
     }
 }

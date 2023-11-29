@@ -63,10 +63,24 @@ impl From<r2d2::Error> for Error {
     }
 }
 
+#[cfg(feature = "rocket")]
 #[cfg(feature = "diesel")]
 impl From<diesel::result::Error> for Error {
     fn from(e: diesel::result::Error) -> Self {
-        Self::DatabaseError(e.to_string())
+        match e {
+            diesel::result::Error::DatabaseError(k, e) => {
+                match k {
+                    diesel::result::DatabaseErrorKind::Unknown => Self::DatabaseError(e.message().to_string()),
+                    _ => Self::Status(rocket::http::Status::BadRequest.code, e.message().to_string()),
+                }
+            }
+            diesel::result::Error::NotFound => Self::Status(rocket::http::Status::NotFound.code, e.to_string()),
+            diesel::result::Error::InvalidCString(_)|
+            diesel::result::Error::QueryBuilderError(_) |
+            diesel::result::Error::DeserializationError(_) |
+            diesel::result::Error::SerializationError(_) => Self::Status(rocket::http::Status::BadRequest.code, e.to_string()),
+            e => Self::DatabaseError(e.to_string()),
+        }
     }
 }
 
@@ -83,10 +97,11 @@ impl From<rocket::http::Status> for Error {
     }
 }
 
+#[cfg(feature = "rocket")]
 #[cfg(feature = "azure_core")]
 impl From<azure_core::error::Error> for Error {
     fn from(value: azure_core::error::Error) -> Self {
-        Error::Status(500, value.to_string())
+        Error::Status(rocket::http::Status::InternalServerError.code, value.to_string())
     }
 }
 

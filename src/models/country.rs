@@ -10,6 +10,15 @@ pub enum Country {
     Poland,
 }
 
+#[cfg(feature = "rocket")]
+#[rocket::async_trait]
+impl<'a> rocket::form::FromFormField<'a> for Country {
+    fn from_value(field: rocket::form::ValueField<'a>) -> rocket::form::Result<'a, Self> {
+        Ok(Self::try_from(field.value)
+            .map_err(|e| rocket::form::Error::validation(e))?)
+    }
+}
+
 impl Country {
     pub fn key(&self) -> &str {
         match self {
@@ -30,7 +39,7 @@ impl Country {
                 return country;
             }
         }
-        Self::default()
+        Default::default()
     }
 }
 

@@ -21,16 +21,19 @@ pub struct BlogMetaData {
     pub lang: Country,
 }
 
-#[cfg(feature = "azure_storage_blobs")]
-use crate::{error::Error, models::tag::Tag};
-#[cfg(feature = "azure_storage_blobs")]
-use std::collections::HashMap;
-
+#[cfg(feature = "base64")]
 #[cfg(feature = "azure_storage_blobs")]
 impl TryFrom<azure_storage_blobs::blob::Blob> for BlogMetaData {
-    type Error = Error;
+    type Error = crate::error::Error;
 
     fn try_from(value: azure_storage_blobs::blob::Blob) -> Result<Self, Self::Error> {
+        use crate::{error::Error, models::tag::Tag};
+        use base64::engine::Engine;
+        use std::collections::HashMap;
+        let engine = base64::engine::GeneralPurpose::new(
+            &base64::alphabet::STANDARD,
+            base64::engine::GeneralPurposeConfig::default(),
+        );
         let (id, lang) = value
             .name
             .split_once('/')
@@ -47,7 +50,17 @@ impl TryFrom<azure_storage_blobs::blob::Blob> for BlogMetaData {
             .ok_or(Error::DatabaseError("File has no metadata!".to_string()))?
             .clone()
             .into_iter()
-            .map(|(k, v)| (k.to_uppercase(), v)) // Azure storage blobs metadata is case insensitive
+            .map(|(k, v)| {
+                (
+                    k.to_uppercase(),
+                    String::from_utf8(
+                        engine
+                            .decode(v)
+                            .unwrap_or("Invalid base64".bytes().collect()),
+                    )
+                    .unwrap_or("Invalid UTF-8".to_string()),
+                )
+            }) // Azure storage blobs metadata is case insensitive
             .collect::<HashMap<_, _>>();
         let title = meta
             .get("BLOG_TITLE")
@@ -89,12 +102,18 @@ impl TryFrom<azure_storage_blobs::blob::Blob> for BlogMetaData {
 }
 
 #[cfg(feature = "azure_core")]
+#[cfg(feature = "base64")]
 impl Into<azure_core::request_options::Metadata> for BlogMetaData {
     fn into(self) -> azure_core::request_options::Metadata {
+        use base64::engine::Engine;
+        let engine = base64::engine::GeneralPurpose::new(
+            &base64::alphabet::STANDARD,
+            base64::engine::GeneralPurposeConfig::default(),
+        );
         let mut meta = azure_core::request_options::Metadata::new();
-        meta.insert("BLOG_TITLE", self.title);
-        meta.insert("BLOG_SUMMARY", self.summary);
-        meta.insert("BLOG_IMAGE", self.image);
+        meta.insert("BLOG_TITLE", engine.encode(&self.title));
+        meta.insert("BLOG_SUMMARY", engine.encode(&self.summary));
+        meta.insert("BLOG_IMAGE", engine.encode(&self.image));
         meta
     }
 }

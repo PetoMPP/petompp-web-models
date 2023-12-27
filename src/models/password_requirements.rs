@@ -1,3 +1,4 @@
+use crate::models::requirement::{Requirement, Requirements};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
@@ -10,29 +11,39 @@ pub struct PasswordRequirements {
     pub special: bool,
 }
 
-impl PasswordRequirements {
-    pub fn validate(&self, password: &str) -> Result<(), ()> {
-        if password.len() < self.min_length as usize {
-            return Err(());
+impl<'a> Requirements<&'a str> for PasswordRequirements {
+    fn requirements(&self) -> Vec<Requirement<&'a str>> {
+        let mut reqs = vec![{
+            let min_length = self.min_length;
+            Requirement::new("min_length", false, move |s: &&str| {
+                s.len() >= min_length as usize
+            })
+        }];
+        if self.numbers {
+            reqs.push(Requirement::new("numbers", true, |s: &&str| {
+                s.chars().any(|c| c.is_numeric())
+            }));
         }
-        #[allow(clippy::type_complexity)]
-        let checks: Vec<Box<dyn Fn(&str) -> bool>> = vec![
-            Box::new(|s: &str| self.numbers && s.chars().any(|c| c.is_numeric())),
-            Box::new(|s: &str| self.uppercase && s.chars().any(|c| c.is_uppercase())),
-            Box::new(|s: &str| self.lowercase && s.chars().any(|c| c.is_lowercase())),
-            Box::new(|s: &str| self.special && s.chars().any(|c| !c.is_alphanumeric())),
-        ];
+        if self.uppercase {
+            reqs.push(Requirement::new("uppercase", true, |s: &&str| {
+                s.chars().any(|c| c.is_uppercase())
+            }));
+        }
+        if self.lowercase {
+            reqs.push(Requirement::new("lowercase", true, |s: &&str| {
+                s.chars().any(|c| c.is_lowercase())
+            }));
+        }
+        if self.special {
+            reqs.push(Requirement::new("special", true, |s: &&str| {
+                s.chars().any(|c| !c.is_alphanumeric())
+            }));
+        }
+        reqs
+    }
 
-        let mut passed = 0;
-        for check in checks {
-            if check(password) {
-                passed += 1;
-            }
-            if passed >= self.passes_required as usize {
-                return Ok(());
-            }
-        }
-        Err(())
+    fn optional_required_count(&self) -> usize {
+        self.passes_required as usize
     }
 }
 

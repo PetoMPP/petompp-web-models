@@ -7,3 +7,4 @@ pub mod resource_data;
 pub mod tag;
 pub mod user;
 pub mod username_requirements;
+pub mod requirement;

@@ -145,7 +145,10 @@ pub enum UserError {
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
-pub struct RegisterError(pub UsernameRequirements, pub PasswordRequirements);
+pub struct RegisterError {
+    pub username_errors: Vec<String>,
+    pub password_errors: Vec<String>,
+}
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum ValidationError {

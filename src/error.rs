@@ -1,4 +1,5 @@
 use crate::models::password_requirements::PasswordRequirements;
+use crate::models::username_requirements::UsernameRequirements;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
@@ -19,14 +20,12 @@ impl From<Error> for ApiError<'_> {
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum Error {
-    AuthError(AuthError),
-    DatabaseError(String),
-    DatabaseConnectionError(String),
-    UserNameTaken(String),
-    UserNotFound(String),
-    InvalidCredentials,
-    UserNotConfirmed(String),
-    ValidationError(ValidationError),
+    Auth(AuthError),
+    Database(String),
+    DatabaseConnection(String),
+    User(UserError),
+    Register(RegisterError),
+    Validation(ValidationError),
     Status(u16, String),
 }
 
@@ -34,17 +33,14 @@ pub enum Error {
 impl Error {
     fn status(&self) -> rocket::http::Status {
         match self {
-            Error::AuthError(e) => match e {
+            Error::Auth(e) => match e {
                 AuthError::JwtError(_) => rocket::http::Status::InternalServerError,
                 _ => rocket::http::Status::BadRequest,
             },
-            Error::DatabaseError(_) => rocket::http::Status::InternalServerError,
-            Error::DatabaseConnectionError(_) => rocket::http::Status::InternalServerError,
-            Error::UserNameTaken(_) => rocket::http::Status::BadRequest,
-            Error::UserNotFound(_) => rocket::http::Status::NotFound,
-            Error::InvalidCredentials => rocket::http::Status::Unauthorized,
-            Error::UserNotConfirmed(_) => rocket::http::Status::PaymentRequired,
-            Error::ValidationError(_) => rocket::http::Status::BadRequest,
+            Error::Database(_) => rocket::http::Status::InternalServerError,
+            Error::DatabaseConnection(_) => rocket::http::Status::InternalServerError,
+            Error::User(_) | Error::Register(_) => rocket::http::Status::Unauthorized,
+            Error::Validation(_) => rocket::http::Status::BadRequest,
             Error::Status(status, _) => rocket::http::Status::from_code(*status).unwrap(),
         }
     }
@@ -59,7 +55,7 @@ impl Display for Error {
 #[cfg(feature = "r2d2")]
 impl From<r2d2::Error> for Error {
     fn from(e: r2d2::Error) -> Self {
-        Self::DatabaseConnectionError(e.to_string())
+        Self::DatabaseConnection(e.to_string())
     }
 }
 
@@ -68,25 +64,32 @@ impl From<r2d2::Error> for Error {
 impl From<diesel::result::Error> for Error {
     fn from(e: diesel::result::Error) -> Self {
         match e {
-            diesel::result::Error::DatabaseError(k, e) => {
-                match k {
-                    diesel::result::DatabaseErrorKind::Unknown => Self::DatabaseError(e.message().to_string()),
-                    _ => Self::Status(rocket::http::Status::BadRequest.code, e.message().to_string()),
+            diesel::result::Error::DatabaseError(k, e) => match k {
+                diesel::result::DatabaseErrorKind::Unknown => {
+                    Self::Database(e.message().to_string())
                 }
+                _ => Self::Status(
+                    rocket::http::Status::BadRequest.code,
+                    e.message().to_string(),
+                ),
+            },
+            diesel::result::Error::NotFound => {
+                Self::Status(rocket::http::Status::NotFound.code, e.to_string())
             }
-            diesel::result::Error::NotFound => Self::Status(rocket::http::Status::NotFound.code, e.to_string()),
-            diesel::result::Error::InvalidCString(_)|
-            diesel::result::Error::QueryBuilderError(_) |
-            diesel::result::Error::DeserializationError(_) |
-            diesel::result::Error::SerializationError(_) => Self::Status(rocket::http::Status::BadRequest.code, e.to_string()),
-            e => Self::DatabaseError(e.to_string()),
+            diesel::result::Error::InvalidCString(_)
+            | diesel::result::Error::QueryBuilderError(_)
+            | diesel::result::Error::DeserializationError(_)
+            | diesel::result::Error::SerializationError(_) => {
+                Self::Status(rocket::http::Status::BadRequest.code, e.to_string())
+            }
+            e => Self::Database(e.to_string()),
         }
     }
 }
 
 impl From<AuthError> for Error {
     fn from(value: AuthError) -> Self {
-        Error::AuthError(value)
+        Error::Auth(value)
     }
 }
 
@@ -101,7 +104,10 @@ impl From<rocket::http::Status> for Error {
 #[cfg(feature = "azure_core")]
 impl From<azure_core::error::Error> for Error {
     fn from(value: azure_core::error::Error) -> Self {
-        Error::Status(rocket::http::Status::InternalServerError.code, value.to_string())
+        Error::Status(
+            rocket::http::Status::InternalServerError.code,
+            value.to_string(),
+        )
     }
 }
 
@@ -131,9 +137,18 @@ impl Display for AuthError {
 impl std::error::Error for AuthError {}
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+pub enum UserError {
+    NameTaken(String),
+    NotFound(String),
+    InvalidCredentials,
+    NotConfirmed(String),
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+pub struct RegisterError(pub UsernameRequirements, pub PasswordRequirements);
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum ValidationError {
-    Username(UsernameValidationError),
-    Password(PasswordRequirements),
     Country,
     Query(QueryValidationError),
     ResourceData(ResourceDataValidationError),

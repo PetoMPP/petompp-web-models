@@ -37,17 +37,17 @@ impl TryFrom<azure_storage_blobs::blob::Blob> for BlogMetaData {
         let (id, lang) = value
             .name
             .split_once('/')
-            .ok_or(Error::DatabaseError("File has no id!".to_string()))?;
+            .ok_or(Error::Database("File has no id!".to_string()))?;
         let id = id.to_string();
         let lang = Country::try_from(
             lang.split_once('.')
-                .ok_or(Error::DatabaseError("File has no extension!".to_string()))?
+                .ok_or(Error::Database("File has no extension!".to_string()))?
                 .0,
         )
-        .map_err(|_| Error::DatabaseError("File has no valid lang!".to_string()))?;
+        .map_err(|_| Error::Database("File has no valid lang!".to_string()))?;
         let meta = value
             .metadata
-            .ok_or(Error::DatabaseError("File has no metadata!".to_string()))?
+            .ok_or(Error::Database("File has no metadata!".to_string()))?
             .clone()
             .into_iter()
             .map(|(k, v)| {
@@ -64,11 +64,11 @@ impl TryFrom<azure_storage_blobs::blob::Blob> for BlogMetaData {
             .collect::<HashMap<_, _>>();
         let title = meta
             .get("BLOG_TITLE")
-            .ok_or(Error::DatabaseError("File has no title!".to_string()))?
+            .ok_or(Error::Database("File has no title!".to_string()))?
             .clone();
         let summary = meta
             .get("BLOG_SUMMARY")
-            .ok_or(Error::DatabaseError("File has no summary!".to_string()))?
+            .ok_or(Error::Database("File has no summary!".to_string()))?
             .clone();
         let image = meta.get("BLOG_IMAGE").cloned().unwrap_or_default();
         let tags = value

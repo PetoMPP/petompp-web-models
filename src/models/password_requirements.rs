@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use crate::error::{Error, ValidationError};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub struct PasswordRequirements {
@@ -12,12 +11,12 @@ pub struct PasswordRequirements {
 }
 
 impl PasswordRequirements {
-    pub fn validate(&self, password: &str) -> Result<(), Error> {
+    pub fn validate(&self, password: &str) -> Result<(), ()> {
         if password.len() < self.min_length as usize {
-            return Err(Error::ValidationError(ValidationError::Password(*self)));
+            return Err(());
         }
         #[allow(clippy::type_complexity)]
-            let checks: Vec<Box<dyn Fn(&str) -> bool>> = vec![
+        let checks: Vec<Box<dyn Fn(&str) -> bool>> = vec![
             Box::new(|s: &str| self.numbers && s.chars().any(|c| c.is_numeric())),
             Box::new(|s: &str| self.uppercase && s.chars().any(|c| c.is_uppercase())),
             Box::new(|s: &str| self.lowercase && s.chars().any(|c| c.is_lowercase())),
@@ -33,7 +32,7 @@ impl PasswordRequirements {
                 return Ok(());
             }
         }
-        Err(Error::ValidationError(ValidationError::Password(*self)))
+        Err(())
     }
 }
 

@@ -4,15 +4,15 @@ use crate::models::username_requirements::UsernameRequirements;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct UserSettingsDto {
-    name_min_length: Option<i32>,
-    name_max_length: Option<i32>,
-    name_special_characters: Option<String>,
-    password_min_length: Option<i32>,
-    password_needed_checks: Option<i32>,
-    password_check_numbers: Option<bool>,
-    password_check_uppercase: Option<bool>,
-    password_check_lowercase: Option<bool>,
-    password_check_special_characters: Option<bool>,
+    pub name_min_length: Option<i32>,
+    pub name_max_length: Option<i32>,
+    pub name_special_characters: Option<String>,
+    pub password_min_length: Option<i32>,
+    pub password_needed_checks: Option<i32>,
+    pub password_check_numbers: Option<bool>,
+    pub password_check_uppercase: Option<bool>,
+    pub password_check_lowercase: Option<bool>,
+    pub password_check_special_characters: Option<bool>,
 }
 
 impl From<(UsernameRequirements, PasswordRequirements)> for UserSettingsDto {

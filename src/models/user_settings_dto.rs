@@ -1,6 +1,6 @@
 use crate::models::password_requirements::PasswordRequirements;
 use crate::models::username_requirements::UsernameRequirements;
-use rocket::serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct UserSettingsDto {

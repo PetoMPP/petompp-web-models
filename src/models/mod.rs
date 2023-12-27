@@ -8,3 +8,4 @@ pub mod tag;
 pub mod user;
 pub mod username_requirements;
 pub mod requirement;
+pub mod user_settings_dto;

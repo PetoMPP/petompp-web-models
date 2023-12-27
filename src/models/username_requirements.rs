@@ -13,19 +13,14 @@ impl<'a> Requirements<&'a str> for UsernameRequirements {
         vec![
             {
                 let min_length = self.min_length;
-                Requirement::new("min_length", false, move |s: &&str| {
-                    s.len() >= min_length as usize
-                })
-            },
-            {
                 let max_length = self.max_length;
-                Requirement::new("max_length", false, move |s: &&str| {
-                    s.len() <= max_length as usize
+                Requirement::new("Username_InvalidLength", false, move |s: &&str| {
+                    (min_length..max_length).contains(&(s.len() as i32))
                 })
             },
             {
                 let special_chars = self.special_chars.clone();
-                Requirement::new("special_chars", false, move |s: &&str| {
+                Requirement::new("Username_OnlyAlphanumericOrSelectedChars", false, move |s: &&str| {
                     let mut allowed = special_chars.chars();
                     s.chars()
                         .all(|c| c.is_alphanumeric() || allowed.any(|x| x == c))
@@ -39,12 +34,3 @@ impl<'a> Requirements<&'a str> for UsernameRequirements {
     }
 }
 
-impl Default for UsernameRequirements {
-    fn default() -> Self {
-        Self {
-            min_length: 3,
-            max_length: 28,
-            special_chars: "-_.$@!#%^&*".to_string(),
-        }
-    }
-}

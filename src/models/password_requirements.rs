@@ -15,27 +15,27 @@ impl<'a> Requirements<&'a str> for PasswordRequirements {
     fn requirements(&self) -> Vec<Requirement<&'a str>> {
         let mut reqs = vec![{
             let min_length = self.min_length;
-            Requirement::new("min_length", false, move |s: &&str| {
+            Requirement::new("Password_MinLength", false, move |s: &&str| {
                 s.len() >= min_length as usize
             })
         }];
         if self.numbers {
-            reqs.push(Requirement::new("numbers", true, |s: &&str| {
+            reqs.push(Requirement::new("Password_ContainsNumber", true, |s: &&str| {
                 s.chars().any(|c| c.is_numeric())
             }));
         }
         if self.uppercase {
-            reqs.push(Requirement::new("uppercase", true, |s: &&str| {
+            reqs.push(Requirement::new("Password_ContainsUppercase", true, |s: &&str| {
                 s.chars().any(|c| c.is_uppercase())
             }));
         }
         if self.lowercase {
-            reqs.push(Requirement::new("lowercase", true, |s: &&str| {
+            reqs.push(Requirement::new("Password_ContainsLowercase", true, |s: &&str| {
                 s.chars().any(|c| c.is_lowercase())
             }));
         }
         if self.special {
-            reqs.push(Requirement::new("special", true, |s: &&str| {
+            reqs.push(Requirement::new("Password_ContainsSpecial", true, |s: &&str| {
                 s.chars().any(|c| !c.is_alphanumeric())
             }));
         }
@@ -47,15 +47,3 @@ impl<'a> Requirements<&'a str> for PasswordRequirements {
     }
 }
 
-impl Default for PasswordRequirements {
-    fn default() -> Self {
-        Self {
-            min_length: 8,
-            passes_required: 3,
-            numbers: true,
-            uppercase: true,
-            lowercase: true,
-            special: true,
-        }
-    }
-}

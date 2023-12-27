@@ -1,6 +1,6 @@
-use rocket::serde::{Deserialize, Serialize};
 use crate::models::password_requirements::PasswordRequirements;
 use crate::models::username_requirements::UsernameRequirements;
+use rocket::serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct UserSettingsDto {
@@ -27,7 +27,29 @@ impl From<(UsernameRequirements, PasswordRequirements)> for UserSettingsDto {
             password_check_numbers: Some(password_requirements.numbers),
             password_check_uppercase: Some(password_requirements.uppercase),
             password_check_lowercase: Some(password_requirements.lowercase),
-            password_check_special_characters: Some(password_requirements.special)
+            password_check_special_characters: Some(password_requirements.special),
         }
+    }
+}
+
+impl TryInto<(UsernameRequirements, PasswordRequirements)> for UserSettingsDto {
+    type Error = ();
+
+    fn try_into(self) -> Result<(UsernameRequirements, PasswordRequirements), Self::Error> {
+        Ok((
+            UsernameRequirements {
+                min_length: self.name_min_length.ok_or(())?,
+                max_length: self.name_max_length.ok_or(())?,
+                special_chars: self.name_special_characters.ok_or(())?,
+            },
+            PasswordRequirements {
+                min_length: self.password_min_length.ok_or(())?,
+                passes_required: self.password_needed_checks.ok_or(())?,
+                numbers: self.password_check_numbers.ok_or(())?,
+                uppercase: self.password_check_uppercase.ok_or(())?,
+                lowercase: self.password_check_lowercase.ok_or(())?,
+                special: self.password_check_special_characters.ok_or(())?,
+            },
+        ))
     }
 }

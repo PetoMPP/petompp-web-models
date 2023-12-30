@@ -9,3 +9,6 @@ pub mod user;
 pub mod username_requirements;
 pub mod requirement;
 pub mod user_settings_dto;
+pub mod project_data;
+pub mod blob_data;
+pub mod azure_meta;

@@ -20,24 +20,32 @@ impl<'a> Requirements<&'a str> for PasswordRequirements {
             })
         }];
         if self.numbers {
-            reqs.push(Requirement::new("Password_ContainsNumber", true, |s: &&str| {
-                s.chars().any(|c| c.is_numeric())
-            }));
+            reqs.push(Requirement::new(
+                "Password_ContainsNumber",
+                true,
+                |s: &&str| s.chars().any(|c| c.is_numeric()),
+            ));
         }
         if self.uppercase {
-            reqs.push(Requirement::new("Password_ContainsUppercase", true, |s: &&str| {
-                s.chars().any(|c| c.is_uppercase())
-            }));
+            reqs.push(Requirement::new(
+                "Password_ContainsUppercase",
+                true,
+                |s: &&str| s.chars().any(|c| c.is_uppercase()),
+            ));
         }
         if self.lowercase {
-            reqs.push(Requirement::new("Password_ContainsLowercase", true, |s: &&str| {
-                s.chars().any(|c| c.is_lowercase())
-            }));
+            reqs.push(Requirement::new(
+                "Password_ContainsLowercase",
+                true,
+                |s: &&str| s.chars().any(|c| c.is_lowercase()),
+            ));
         }
         if self.special {
-            reqs.push(Requirement::new("Password_ContainsSpecial", true, |s: &&str| {
-                s.chars().any(|c| !c.is_alphanumeric())
-            }));
+            reqs.push(Requirement::new(
+                "Password_ContainsSpecial",
+                true,
+                |s: &&str| s.chars().any(|c| !c.is_alphanumeric()),
+            ));
         }
         reqs
     }
@@ -46,4 +54,3 @@ impl<'a> Requirements<&'a str> for PasswordRequirements {
         self.passes_required as usize
     }
 }
-

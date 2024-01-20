@@ -51,10 +51,7 @@ impl Into<azure_core::request_options::Metadata> for ProjectMetaData {
         );
         let mut meta: azure_core::request_options::Metadata = (&self.blob).into();
         for (i, image) in self.images.into_iter().enumerate() {
-            meta.insert(
-                format!("PROJECT_IMAGE_{}", i),
-                engine.encode(image),
-            );
+            meta.insert(format!("PROJECT_IMAGE_{}", i), engine.encode(image));
         }
 
         meta

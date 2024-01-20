@@ -1,6 +1,6 @@
-use std::fmt::Display;
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
+use std::fmt::Display;
 
 #[derive(PartialEq, Clone, Debug, Serialize, Deserialize)]
 pub struct UserData {

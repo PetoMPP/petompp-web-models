@@ -13,12 +13,17 @@ pub trait Requirements<T> {
                     false => opt_errors.push(requirement.name),
                 },
                 false => match (requirement.validator)(value) {
-                    true => {},
+                    true => {}
                     false => errors.push(requirement.name),
                 },
             }
         }
-        if errors.is_empty() && passed >= self.optional_required_count().min(reqs.iter().filter(|r| r.optional).count()) {
+        if errors.is_empty()
+            && passed
+                >= self
+                    .optional_required_count()
+                    .min(reqs.iter().filter(|r| r.optional).count())
+        {
             Ok(())
         } else {
             Err(errors.into_iter().chain(opt_errors).collect())

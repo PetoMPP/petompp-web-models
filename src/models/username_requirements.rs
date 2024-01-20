@@ -20,11 +20,15 @@ impl<'a> Requirements<&'a str> for UsernameRequirements {
             },
             {
                 let special_chars = self.special_chars.clone();
-                Requirement::new("Username_OnlyAlphanumericOrSelectedChars", false, move |s: &&str| {
-                    let mut allowed = special_chars.chars();
-                    s.chars()
-                        .all(|c| c.is_alphanumeric() || allowed.any(|x| x == c))
-                })
+                Requirement::new(
+                    "Username_OnlyAlphanumericOrSelectedChars",
+                    false,
+                    move |s: &&str| {
+                        let mut allowed = special_chars.chars();
+                        s.chars()
+                            .all(|c| c.is_alphanumeric() || allowed.any(|x| x == c))
+                    },
+                )
             },
         ]
     }
@@ -33,4 +37,3 @@ impl<'a> Requirements<&'a str> for UsernameRequirements {
         0
     }
 }
-

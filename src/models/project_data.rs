@@ -1,7 +1,6 @@
 use crate::models::azure_meta::AzureMetadata;
 use crate::models::blob_data::BlobMetaData;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct ProjectData {
@@ -45,17 +44,17 @@ impl TryFrom<azure_storage_blobs::blob::Blob> for ProjectMetaData {
 #[cfg(feature = "base64")]
 impl Into<azure_core::request_options::Metadata> for ProjectMetaData {
     fn into(self) -> azure_core::request_options::Metadata {
-        let mut meta: azure_core::request_options::Metadata = (&self.blob).into();
-        let tags = self.images.into_iter().enumerate().fold(
-            HashMap::new(),
-            |mut acc: HashMap<String, String>, (i, image)| {
-                acc.insert(format!("PROJECT_IMAGE_{}", i), image);
-                acc
-            },
+        use base64::engine::Engine;
+        let engine = base64::engine::GeneralPurpose::new(
+            &base64::alphabet::STANDARD,
+            base64::engine::GeneralPurposeConfig::default(),
         );
-        let blog_meta = AzureMetadata::from(tags);
-        for (k, v) in blog_meta.deref() {
-            meta.insert(k, v.clone());
+        let mut meta: azure_core::request_options::Metadata = (&self.blob).into();
+        for (i, image) in self.images.into_iter().enumerate() {
+            meta.insert(
+                format!("PROJECT_IMAGE_{}", i),
+                engine.encode(image),
+            );
         }
 
         meta

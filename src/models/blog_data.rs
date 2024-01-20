@@ -1,7 +1,6 @@
 use crate::models::azure_meta::AzureMetadata;
 use crate::models::blob_data::BlobMetaData;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct BlogData {
@@ -44,22 +43,22 @@ impl TryFrom<azure_storage_blobs::blob::Blob> for BlogMetaData {
 #[cfg(feature = "base64")]
 impl Into<azure_core::request_options::Metadata> for BlogMetaData {
     fn into(self) -> azure_core::request_options::Metadata {
+        use base64::engine::Engine;
+        let engine = base64::engine::GeneralPurpose::new(
+            &base64::alphabet::STANDARD,
+            base64::engine::GeneralPurposeConfig::default(),
+        );
         let mut meta: azure_core::request_options::Metadata = (&self.blob).into();
-        let tags = match self.project {
-            Some(project) => vec![
-                ("BLOG_PROJECT".to_string(), project),
-                ("BLOG_IMAGE".to_string(), self.image),
-            ]
-            .into_iter()
-            .collect::<HashMap<_, _>>(),
-            None => vec![("BLOG_IMAGE".to_string(), self.image)]
-                .into_iter()
-                .collect::<HashMap<_, _>>(),
-        };
-        let blog_meta = AzureMetadata::from(tags);
-        for (k, v) in blog_meta.deref() {
-            meta.insert(k, v.clone());
+        if let Some(project) = self.project {
+            meta.insert(
+                "BLOG_PROJECT".to_string(),
+                engine.encode(project.as_bytes()),
+            );
         }
+        meta.insert(
+            "BLOG_IMAGE".to_string(),
+            engine.encode(self.image.as_bytes()),
+        );
 
         meta
     }

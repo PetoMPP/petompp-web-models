@@ -93,8 +93,8 @@ impl Into<azure_core::request_options::Metadata> for &BlobMetaData {
             base64::engine::GeneralPurposeConfig::default(),
         );
         let mut meta = azure_core::request_options::Metadata::new();
-        meta.insert("BLOG_TITLE", engine.encode(&self.title));
-        meta.insert("BLOG_SUMMARY", engine.encode(&self.summary));
+        meta.insert("BLOB_TITLE", engine.encode(&self.title));
+        meta.insert("BLOB_SUMMARY", engine.encode(&self.summary));
         meta
     }
 }

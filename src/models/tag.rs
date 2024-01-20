@@ -43,11 +43,27 @@ impl From<Vec<Tag>> for Tags {
 use azure_storage_blobs::prelude::Tags as AzureTags;
 
 #[cfg(feature = "azure_storage_blobs")]
+impl From<AzureTags> for Tags {
+    fn from(tags: AzureTags) -> Self {
+        Self {
+            tags: tags
+                .into_iter()
+                .filter_map(|t| match t.0.starts_with("BLOB_TAG_") {
+                    true => Some(t.0[9..].to_string()),
+                    false => None,
+                })
+                .collect::<Vec<_>>()
+                .join(","),
+        }
+    }
+}
+
+#[cfg(feature = "azure_storage_blobs")]
 impl Into<AzureTags> for Tags {
     fn into(self) -> AzureTags {
         self.tags()
             .into_iter()
-            .map(|tag| (format!("BLOG_TAG_{}", tag.tag), "".to_string()))
+            .map(|tag| (format!("BLOB_TAG_{}", tag.tag), "".to_string()))
             .collect::<HashMap<_, _>>()
             .into()
     }

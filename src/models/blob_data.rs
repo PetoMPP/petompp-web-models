@@ -27,7 +27,7 @@ impl TryFrom<&azure_storage_blobs::blob::Blob> for BlobMetaData {
     type Error = crate::error::Error;
 
     fn try_from(value: &azure_storage_blobs::blob::Blob) -> Result<Self, Self::Error> {
-        use crate::{error::Error, models::tag::Tag};
+        use crate::error::Error;
         let (id, lang) = value
             .name
             .split_once('/')
@@ -54,19 +54,7 @@ impl TryFrom<&azure_storage_blobs::blob::Blob> for BlobMetaData {
             .get("BLOB_SUMMARY")
             .ok_or(Error::Database("File has no summary!".to_string()))?
             .clone();
-        let tags = value
-            .tags
-            .clone()
-            .unwrap_or_default()
-            .into_iter()
-            .filter_map(|t| match t.0.starts_with("BLOB_TAG_") {
-                true => Some(Tag {
-                    tag: t.0[9..].to_string(),
-                }),
-                false => None,
-            })
-            .collect::<Vec<_>>();
-        let tags = Tags::from(tags);
+        let tags = Tags::from(value.tags.clone().unwrap_or_default());
         let created =
             DateTime::from_timestamp(value.properties.creation_time.unix_timestamp(), 0).unwrap();
         let updated =

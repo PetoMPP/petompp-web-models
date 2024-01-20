@@ -14,7 +14,7 @@ pub enum Country {
 #[rocket::async_trait]
 impl<'a> rocket::form::FromFormField<'a> for Country {
     fn from_value(field: rocket::form::ValueField<'a>) -> rocket::form::Result<'a, Self> {
-        Ok(Self::try_from(field.value).map_err(|e| rocket::form::Error::validation(e))?)
+        Ok(Self::try_from(field.value).map_err(rocket::form::Error::validation)?)
     }
 }
 

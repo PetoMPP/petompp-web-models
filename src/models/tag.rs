@@ -1,6 +1,5 @@
 use deref_derive::Deref;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 #[derive(Debug, Default, Deref, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Tag {
@@ -59,9 +58,10 @@ impl From<AzureTags> for Tags {
 }
 
 #[cfg(feature = "azure_storage_blobs")]
-impl Into<AzureTags> for Tags {
-    fn into(self) -> AzureTags {
-        self.tags()
+impl From<Tags> for AzureTags {
+    fn from(val: Tags) -> Self {
+        use std::collections::HashMap;
+        val.tags()
             .into_iter()
             .map(|tag| (format!("BLOB_TAG_{}", tag.tag), "".to_string()))
             .collect::<HashMap<_, _>>()

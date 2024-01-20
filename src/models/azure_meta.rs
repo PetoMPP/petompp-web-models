@@ -1,20 +1,15 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use deref_derive::Deref;
 
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+#[derive(Deref, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct AzureMetadata(HashMap<String, String>);
 
-impl AzureMetadata {
-    pub fn deref(&self) -> &HashMap<String, String> {
-        &self.0
-    }
-}
-
 #[cfg(feature = "azure_core")]
-impl Into<azure_core::request_options::Metadata> for AzureMetadata {
-    fn into(self) -> azure_core::request_options::Metadata {
+impl From<AzureMetadata> for azure_core::request_options::Metadata {
+    fn from(val: AzureMetadata) -> Self {
         let mut meta = azure_core::request_options::Metadata::new();
-        for (k, v) in self.0 {
+        for (k, v) in val.0 {
             meta.insert(k, v);
         }
         meta

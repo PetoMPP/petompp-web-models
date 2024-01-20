@@ -1,4 +1,3 @@
-use crate::models::azure_meta::AzureMetadata;
 use crate::models::country::Country;
 use crate::models::tag::Tags;
 use chrono::{DateTime, Utc};
@@ -27,7 +26,7 @@ impl TryFrom<&azure_storage_blobs::blob::Blob> for BlobMetaData {
     type Error = crate::error::Error;
 
     fn try_from(value: &azure_storage_blobs::blob::Blob) -> Result<Self, Self::Error> {
-        use crate::error::Error;
+        use crate::{error::Error, models::azure_meta::AzureMetadata};
         let (id, lang) = value
             .name
             .split_once('/')
@@ -45,12 +44,10 @@ impl TryFrom<&azure_storage_blobs::blob::Blob> for BlobMetaData {
             .ok_or(Error::Database("File has no metadata!".to_string()))?
             .into();
         let title = meta
-            .deref()
             .get("BLOB_TITLE")
             .ok_or(Error::Database("File has no title!".to_string()))?
             .clone();
         let summary = meta
-            .deref()
             .get("BLOB_SUMMARY")
             .ok_or(Error::Database("File has no summary!".to_string()))?
             .clone();
@@ -73,16 +70,16 @@ impl TryFrom<&azure_storage_blobs::blob::Blob> for BlobMetaData {
 
 #[cfg(feature = "azure_core")]
 #[cfg(feature = "base64")]
-impl Into<azure_core::request_options::Metadata> for &BlobMetaData {
-    fn into(self) -> azure_core::request_options::Metadata {
+impl From<&BlobMetaData> for azure_core::request_options::Metadata {
+    fn from(val: &BlobMetaData) -> Self {
         use base64::engine::Engine;
         let engine = base64::engine::GeneralPurpose::new(
             &base64::alphabet::STANDARD,
             base64::engine::GeneralPurposeConfig::default(),
         );
         let mut meta = azure_core::request_options::Metadata::new();
-        meta.insert("BLOB_TITLE", engine.encode(&self.title));
-        meta.insert("BLOB_SUMMARY", engine.encode(&self.summary));
+        meta.insert("BLOB_TITLE", engine.encode(&val.title));
+        meta.insert("BLOB_SUMMARY", engine.encode(&val.summary));
         meta
     }
 }

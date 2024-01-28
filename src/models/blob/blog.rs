@@ -3,13 +3,14 @@ use crate::models::blob::blob_meta::BlobMetaData;
 use crate::models::blob::markdown::MarkdownMeta;
 use deref_derive::{Deref, DerefMut};
 use serde::{Deserialize, Serialize};
+use crate::models::country::Country;
 
 #[derive(Deref, DerefMut, Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct BlogMetaData(pub MarkdownMeta);
+pub struct BlogMetaData(MarkdownMeta);
 
-impl Default for BlogMetaData {
-    fn default() -> Self {
-        let mut meta = MarkdownMeta::default();
+impl BlogMetaData {
+    pub fn empty(id: &str, lang: Country) -> Self {
+        let mut meta = MarkdownMeta::empty(id, lang);
         meta.metadata
             .insert("BLOG_IMAGE".to_string(), Default::default());
         Self(meta)

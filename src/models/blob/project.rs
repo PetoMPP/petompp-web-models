@@ -1,5 +1,6 @@
 use crate::models::blob::blob_meta::BlobMetaData;
 use crate::models::blob::markdown::MarkdownMeta;
+use crate::models::country::Country;
 use deref_derive::{Deref, DerefMut};
 use serde::{Deserialize, Serialize};
 
@@ -9,8 +10,8 @@ pub struct ProjectData {
     pub content: String,
 }
 
-#[derive(Deref, DerefMut, Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
-pub struct ProjectMetaData(pub MarkdownMeta);
+#[derive(Deref, DerefMut, Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ProjectMetaData(MarkdownMeta);
 
 impl From<ProjectMetaData> for BlobMetaData {
     fn from(val: ProjectMetaData) -> Self {
@@ -19,6 +20,10 @@ impl From<ProjectMetaData> for BlobMetaData {
 }
 
 impl ProjectMetaData {
+    pub fn empty(id: &str, lang: Country) -> Self {
+        Self(MarkdownMeta::empty(id, lang))
+    }
+
     pub fn images(&self) -> Vec<&String> {
         let reg = regex::Regex::new(r"^PROJECT_IMAGE_(\d+)").unwrap();
         let mut images = self

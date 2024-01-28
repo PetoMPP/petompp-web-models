@@ -6,6 +6,7 @@ pub struct Tag {
     pub tag: String,
 }
 
+#[cfg_attr(feature = "rocket", derive(rocket::form::FromForm))]
 #[derive(Debug, Default, Deref, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Tags {
     tags: String,

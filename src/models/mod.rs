@@ -1,11 +1,8 @@
 pub mod api_response;
-pub mod azure_meta;
-pub mod blob_data;
-pub mod blog_data;
+pub mod blob;
 pub mod country;
 pub mod credentials;
 pub mod password_requirements;
-pub mod project_data;
 pub mod requirement;
 pub mod resource_data;
 pub mod tag;

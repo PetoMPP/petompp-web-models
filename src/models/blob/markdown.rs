@@ -1,0 +1,62 @@
+use crate::error::Error;
+use crate::models::blob::blob_meta::BlobMetaData;
+use crate::models::country::Country;
+use deref_derive::{Deref, DerefMut};
+use serde::{Deserialize, Serialize};
+
+pub struct MarkdownData {
+    pub meta: MarkdownMeta,
+    pub content: String,
+}
+
+/// The metadata of a markdown file.
+/// Those are stored as "id/lang.md"
+#[derive(Deref, DerefMut, Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+pub struct MarkdownMeta(pub BlobMetaData);
+
+impl From<MarkdownMeta> for BlobMetaData {
+    fn from(val: MarkdownMeta) -> Self {
+        (*val).clone()
+    }
+}
+
+impl MarkdownMeta {
+    pub fn id(&self) -> &str {
+        self.filename.split_once('/').unwrap().0
+    }
+
+    pub fn lang(&self) -> Country {
+        Country::try_from(
+            self.filename
+                .split_once('/')
+                .unwrap()
+                .1
+                .split_once('.')
+                .unwrap()
+                .0,
+        )
+        .unwrap()
+    }
+}
+
+impl TryFrom<BlobMetaData> for MarkdownMeta {
+    type Error = Error;
+    fn try_from(val: BlobMetaData) -> Result<Self, Self::Error> {
+        let c = val
+            .filename
+            .split_once('/')
+            .ok_or(Error::Database("File has no id!".to_string()))?
+            .1
+            .split_once('.')
+            .ok_or("File has no lang!")
+            .and_then(|(_, l)| Country::try_from(l))
+            .map_err(|e| Error::Database(e.to_string()))?;
+        match &val.content_language {
+            Some(_) => Ok(Self(val)),
+            None => Ok(Self(BlobMetaData {
+                content_language: Some(c.key().to_string()),
+                ..val
+            })),
+        }
+    }
+}

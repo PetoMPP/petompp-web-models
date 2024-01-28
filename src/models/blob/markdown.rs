@@ -58,7 +58,7 @@ impl TryFrom<BlobMetaData> for MarkdownMeta {
             .1
             .split_once('.')
             .ok_or("File has no lang!")
-            .and_then(|(_, l)| Country::try_from(l))
+            .and_then(|(l, _)| Country::try_from(l))
             .map_err(|e| Error::Database(e.to_string()))?;
         match &val.content_language {
             Some(_) => Ok(Self(val)),

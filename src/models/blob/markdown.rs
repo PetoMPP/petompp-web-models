@@ -11,7 +11,7 @@ pub struct MarkdownData {
 
 /// The metadata of a markdown file.
 /// Those are stored as "id/lang.md"
-#[derive(Deref, DerefMut, Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Deref, DerefMut, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct MarkdownMeta(pub BlobMetaData);
 
 impl From<MarkdownMeta> for BlobMetaData {
@@ -21,6 +21,15 @@ impl From<MarkdownMeta> for BlobMetaData {
 }
 
 impl MarkdownMeta {
+    pub fn empty(id: &str, lang: Country) -> Self {
+        Self(BlobMetaData {
+            filename: format!("{}/{}.md", id, lang.key()),
+            content_type: "text/markdown".to_string(),
+            content_language: Some(lang.key().to_string()),
+            ..Default::default()
+        })
+    }
+
     pub fn id(&self) -> &str {
         self.filename.split_once('/').unwrap().0
     }

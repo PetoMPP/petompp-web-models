@@ -21,9 +21,13 @@ impl From<MarkdownMeta> for BlobMetaData {
 }
 
 impl MarkdownMeta {
+    pub fn create_filename(id: &str, lang: Country) -> String {
+        format!("{}/{}.md", id, lang.key())
+    }
+
     pub fn empty(id: &str, lang: Country) -> Self {
         Self(BlobMetaData {
-            filename: format!("{}/{}.md", id, lang.key()),
+            filename: Self::create_filename(id, lang),
             content_type: "text/markdown".to_string(),
             content_language: Some(lang.key().to_string()),
             ..Default::default()
@@ -59,7 +63,7 @@ impl TryFrom<BlobMetaData> for MarkdownMeta {
             .split_once('.')
             .ok_or("File has no lang!")
             .and_then(|(l, _)| Country::try_from(l))
-            .map_err(|e| Error::Database(e.to_string()))?;
+            .map_err(|e| Error::Database(format!("\"{}\" is not a valid lang", e)))?;
         match &val.content_language {
             Some(_) => Ok(Self(val)),
             None => Ok(Self(BlobMetaData {

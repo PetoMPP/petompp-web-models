@@ -24,23 +24,16 @@ impl ProjectMetaData {
         Self(MarkdownMeta::empty(id, lang))
     }
 
-    pub fn images(&self) -> Vec<&String> {
-        let reg = regex::Regex::new(r"^PROJECT_IMAGE_(\d+)").unwrap();
-        let mut images = self
-            .metadata
-            .iter()
-            .filter_map(|(k, v)| reg.captures(k).map(|c| (c[1].parse::<usize>().unwrap(), v)))
-            .collect::<Vec<_>>();
-        images.sort_by(|(a, _), (b, _)| a.cmp(b));
-        images.into_iter().map(|(_, v)| v).collect()
+    pub fn images(&self) -> Vec<String> {
+        self.metadata
+            .get("PROJECT_IMAGES")
+            .map(|s| s.split('>').map(|s| s.to_string()).collect::<Vec<_>>())
+            .unwrap_or_default()
     }
 
-    pub fn with_images(&self, images: Vec<String>) -> Self {
-        let mut meta = (**self).clone();
-        for (i, image) in images.into_iter().enumerate() {
-            meta.metadata.insert(format!("PROJECT_IMAGE_{}", i), image);
-        }
-        Self(meta)
+    pub fn set_images(&mut self, images: Vec<String>) {
+        self.metadata
+            .insert("PROJECT_IMAGES".to_string(), images.join(">"));
     }
 }
 

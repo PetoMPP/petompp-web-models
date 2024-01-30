@@ -28,20 +28,16 @@ impl BlogMetaData {
         self.metadata.get("BLOG_PROJECT")
     }
 
-    pub fn with_project(&self, project: String) -> Self {
-        let mut meta = (**self).clone();
-        meta.metadata.insert("BLOG_PROJECT".to_string(), project);
-        Self(meta)
+    pub fn set_project(&mut self, project: String) {
+        self.metadata.insert("BLOG_PROJECT".to_string(), project);
     }
 
     pub fn image(&self) -> &String {
         self.metadata.get("BLOG_IMAGE").unwrap()
     }
 
-    pub fn with_image(&self, image: String) -> Self {
-        let mut meta = (**self).clone();
-        meta.metadata.insert("BLOG_IMAGE".to_string(), image);
-        Self(meta)
+    pub fn set_image(&mut self, image: String) {
+        self.metadata.insert("BLOG_IMAGE".to_string(), image);
     }
 }
 

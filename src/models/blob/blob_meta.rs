@@ -124,20 +124,16 @@ impl BlobMetaData {
         self.metadata.get("BLOB_TITLE").unwrap()
     }
 
-    pub fn with_title(&self, title: String) -> Self {
-        let mut meta = self.clone();
-        meta.metadata.insert("BLOB_TITLE".to_string(), title);
-        meta
+    pub fn set_title(&mut self, title: String) {
+        self.metadata.insert("BLOB_TITLE".to_string(), title);
     }
 
     pub fn summary(&self) -> &String {
         self.metadata.get("BLOB_SUMMARY").unwrap()
     }
 
-    pub fn with_summary(&self, summary: String) -> Self {
-        let mut meta = self.clone();
-        meta.metadata.insert("BLOB_SUMMARY".to_string(), summary);
-        meta
+    pub fn set_summary(&mut self, summary: String) {
+        self.metadata.insert("BLOB_SUMMARY".to_string(), summary);
     }
 }
 

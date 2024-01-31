@@ -23,18 +23,6 @@ impl ProjectMetaData {
     pub fn empty(id: &str, lang: Country) -> Self {
         Self(MarkdownMeta::empty(id, lang))
     }
-
-    pub fn images(&self) -> Vec<String> {
-        self.metadata
-            .get("PROJECT_IMAGES")
-            .map(|s| s.split('>').map(|s| s.to_string()).collect::<Vec<_>>())
-            .unwrap_or_default()
-    }
-
-    pub fn set_images(&mut self, images: Vec<String>) {
-        self.metadata
-            .insert("PROJECT_IMAGES".to_string(), images.join(">"));
-    }
 }
 
 impl TryFrom<BlobMetaData> for ProjectMetaData {

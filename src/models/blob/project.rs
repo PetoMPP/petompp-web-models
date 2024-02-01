@@ -23,6 +23,14 @@ impl ProjectMetaData {
     pub fn empty(id: &str, lang: Country) -> Self {
         Self(MarkdownMeta::empty(id, lang))
     }
+
+    pub fn splash(&self) -> Option<&String> {
+        self.metadata.get("PROJECT_SPLASH")
+    }
+
+    pub fn set_splash(&mut self, splash: String) {
+        self.metadata.insert("PROJECT_SPLASH".to_string(), splash);
+    }
 }
 
 impl TryFrom<BlobMetaData> for ProjectMetaData {
